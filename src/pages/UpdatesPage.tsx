@@ -93,25 +93,25 @@ export default function UpdatesPage() {
                         <Input 
                           label="Revenue (USD)" 
                           placeholder="e.g. 12000" 
-                          icon={Coins}
+                          
                           {...register('revenue')} 
                         />
                         <Input 
                           label="Expenses (USD)" 
                           placeholder="e.g. 9000" 
-                          icon={TrendingUp}
+                          
                           {...register('expenses')} 
                         />
                         <Input 
                           label="Active Clients" 
                           placeholder="e.g. 45" 
-                          icon={Users}
+                          
                           {...register('clients')} 
                         />
                         <Input 
                           label="Critical Issue (Optional)" 
                           placeholder="What blocked you?" 
-                          icon={AlertTriangle}
+                          
                           {...register('issue')} 
                         />
                      </div>
