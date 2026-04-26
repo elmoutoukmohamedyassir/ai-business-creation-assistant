@@ -1,147 +1,314 @@
+import React from 'react';
+import { useState } from 'react';
 import { motion } from 'motion/react';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '../components/ui/Card';
+import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
-import { 
-  Zap, 
-  Target, 
-  ShieldAlert, 
-  ArrowRight, 
-  Sparkles,
+import { Progress } from '../components/ui/Progress';
+import {
+  Zap,
   TrendingUp,
-  Globe,
-  Cpu,
-  BarChart4
+  Target,
+  ChevronRight,
+  Filter,
+  Sparkles,
+  ArrowUpRight,
 } from 'lucide-react';
 import { mockRecommendations } from '../data/mock';
+import type { Recommendation, Difficulty } from '../types';
 import { cn } from '../utils/cn';
 
+type DifficultyFilter = Difficulty | 'all';
+
+const DIFFICULTY_BADGE_VARIANT: Record<Difficulty, 'success' | 'warning' | 'danger'> = {
+  easy: 'success',
+  medium: 'warning',
+  hard: 'danger',
+};
+
+const DIFFICULTY_FILTERS: DifficultyFilter[] = ['all', 'easy', 'medium', 'hard'];
+
 export default function RecommendationsPage() {
+  const [difficultyFilter, setDifficultyFilter] = useState<DifficultyFilter>('all');
+  const [saved, setSaved] = useState<Set<string>>(new Set());
+
+  const filtered =
+    difficultyFilter === 'all'
+      ? mockRecommendations
+      : mockRecommendations.filter((r) => r.difficulty === difficultyFilter);
+
+  const toggleSave = (id: string) => {
+    setSaved((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  };
+
+  const savedCount = saved.size;
+  const implementedPct = Math.round((savedCount / mockRecommendations.length) * 100);
+
   return (
     <div className="space-y-8 pb-20">
+      {/* Header */}
       <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div className="space-y-1">
-          <h1 className="text-4xl font-black tracking-tight text-white uppercase italic">Active Advise.</h1>
-          <p className="text-slate-400 font-medium">Neural Insights generated from your latest operational syncs.</p>
+          <h1 className="text-4xl font-black tracking-tight text-white uppercase italic">
+            Intel Drop.
+          </h1>
+          <p className="text-slate-400 font-medium">
+            {mockRecommendations.length} AI-generated strategic actions calibrated to your venture.
+          </p>
         </div>
-        <div className="flex gap-2">
-           <div className="px-4 h-12 flex items-center bg-white/5 border border-white/5 rounded-2xl text-[10px] font-bold text-indigo-400 uppercase tracking-widest">
-              Last Sync: 2h ago
-           </div>
-        </div>
+        <Badge variant="success" className="text-sm px-4 py-2 h-auto self-start md:self-end">
+          <Sparkles size={14} className="mr-2 inline-block" aria-hidden="true" />
+          Updated just now
+        </Badge>
       </header>
 
-      {/* Hero Recommendation */}
-      <Card className="bg-indigo-600 border-indigo-500 overflow-hidden group shadow-2xl shadow-indigo-500/20">
-         <div className="grid lg:grid-cols-2">
-            <div className="p-12 space-y-8 relative z-10">
-               <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-[10px] font-bold uppercase tracking-widest text-white border border-white/10 backdrop-blur-md">
-                 <Sparkles size={12} />
-                 Priority Alpha Impact
-               </span>
-               <h2 className="text-5xl font-black text-white italic tracking-tighter leading-[0.9]">Autonomous Fleet Expansion.</h2>
-               <p className="text-lg text-indigo-100 font-medium leading-relaxed max-w-md">
-                 Our simulation shows that deploying 5 additional e-cargo bikes in Berlin-Mitte will trigger a network effect, reducing your unit delivery cost by <span className="text-white font-black underline underline-offset-4 decoration-2">18.5%</span>.
-               </p>
-               <Button variant="secondary" className="h-14 px-10 text-lg font-black uppercase tracking-widest bg-white text-indigo-600 hover:bg-neutral-100 group">
-                  Initiate Expansion
-                  <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" />
-               </Button>
-            </div>
-            <div className="relative h-64 lg:h-auto bg-indigo-700/50 flex items-center justify-center overflow-hidden">
-               <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20" />
-               <Cpu size={200} className="text-white/5 absolute -right-12 -bottom-12 transform rotate-12" />
-               <motion.div 
-                 animate={{ rotate: 360 }}
-                 transition={{ duration: 40, repeat: Infinity, ease: 'linear' }}
-                 className="relative w-64 h-64 border-2 border-dashed border-white/10 rounded-full flex items-center justify-center"
-               >
-                  <div className="w-48 h-48 border border-white/20 rounded-full flex items-center justify-center">
-                     <TrendingUp size={48} className="text-white opacity-40" />
-                  </div>
-               </motion.div>
-            </div>
-         </div>
-      </Card>
+      {/* Stats row */}
+      <div className="grid sm:grid-cols-3 gap-6">
+        <StatCard
+          icon={<Zap size={20} className="text-amber-400" />}
+          label="Total Actions"
+          value={mockRecommendations.length}
+          sub="AI-calibrated recommendations"
+        />
+        <StatCard
+          icon={<Target size={20} className="text-emerald-400" />}
+          label="Marked for Review"
+          value={savedCount}
+          sub={`${implementedPct}% of total pipeline`}
+        />
+        <StatCard
+          icon={<TrendingUp size={20} className="text-indigo-400" />}
+          label="Estimated Uplift"
+          value="+28%"
+          sub="Projected performance delta"
+        />
+      </div>
 
-      <div className="grid lg:grid-cols-3 gap-8">
-         <div className="lg:col-span-2 space-y-8">
-            <h3 className="text-2xl font-bold text-white px-2">Intelligence Stream</h3>
-            <div className="grid md:grid-cols-2 gap-6">
-               {mockRecommendations.map((rec, i) => (
-                  <motion.div
-                    key={rec.id}
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: i * 0.1 }}
-                  >
-                    <Card className="hover:border-indigo-500/30 transition-all cursor-pointer group h-full flex flex-col">
-                       <CardHeader className="pb-4">
-                          <div className="flex items-center justify-between mb-4">
-                             <Badge variant="secondary" className="px-1.5 py-0.5 text-[9px] uppercase tracking-[0.1em]">{rec.category}</Badge>
-                             <div className="flex gap-1">
-                                {[1,2,3].map(dot => (
-                                  <div key={dot} className={cn("w-1 h-1 rounded-full", dot <= (rec.difficulty === 'easy' ? 1 : rec.difficulty === 'medium' ? 2 : 3) ? "bg-amber-400" : "bg-white/5")} />
-                                ))}
-                             </div>
-                          </div>
-                          <CardTitle className="text-xl group-hover:text-indigo-400 transition-colors uppercase italic">{rec.title}</CardTitle>
-                       </CardHeader>
-                       <CardContent className="flex-1">
-                          <p className="text-sm text-slate-400 leading-relaxed font-medium line-clamp-3">{rec.description}</p>
-                       </CardContent>
-                       <CardFooter className="pt-6 border-t border-white/5 bg-white/[0.01]">
-                          <div className="w-full flex items-center justify-between">
-                             <div className="space-y-0.5">
-                                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest whitespace-nowrap">Neural Impact</p>
-                                <p className="text-xs font-black text-emerald-400 italic">{rec.impact}</p>
-                             </div>
-                             <Button size="icon" variant="ghost" className="rounded-full h-8 w-8 text-slate-600 hover:text-white">
-                                <ArrowRight size={14} />
-                             </Button>
-                          </div>
-                       </CardFooter>
-                    </Card>
-                  </motion.div>
-               ))}
-            </div>
-         </div>
+      <div className="grid lg:grid-cols-12 gap-8">
+        {/* Left — recommendation list */}
+        <div className="lg:col-span-8 space-y-6">
+          {/* Filters */}
+          <div
+            className="flex flex-wrap gap-2"
+            role="group"
+            aria-label="Filter recommendations by difficulty"
+          >
+            <Filter size={14} className="text-slate-500 self-center mr-1" aria-hidden="true" />
+            {DIFFICULTY_FILTERS.map((d) => (
+              <button
+                key={d}
+                type="button"
+                onClick={() => setDifficultyFilter(d)}
+                aria-pressed={difficultyFilter === d}
+                className={cn(
+                  'px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-widest transition-all',
+                  difficultyFilter === d
+                    ? 'bg-indigo-600 text-white'
+                    : 'bg-white/5 text-slate-400 hover:bg-white/10 hover:text-white'
+                )}
+              >
+                {d === 'all' ? 'All Levels' : d}
+              </button>
+            ))}
+          </div>
 
-         <div className="space-y-8">
-            <h3 className="text-2xl font-bold text-white px-1">Risk Mitigation</h3>
-            <div className="space-y-4">
-               {[
-                  { tag: 'OPERATIONAL', title: 'Route Saturation', risk: 'Medium', desc: 'Berlin pilot routes are hitting 85% capacity. Delaying expansion may lead to missed delivery windows.' },
-                  { tag: 'REGULATORY', title: 'New EV Mandates', risk: 'High', desc: 'Upcoming Brandenburg legislation requires full transition by Q3. Accelerate fleet conversion.' },
-               ].map((item, i) => (
-                  <Card key={i} className="bg-rose-500/5 border-rose-500/20 p-6 space-y-4">
-                     <div className="flex items-center justify-between">
-                        <span className="text-[10px] font-black text-rose-400 uppercase tracking-[0.2em]">{item.tag}</span>
-                        <ShieldAlert size={16} className="text-rose-500" />
-                     </div>
-                     <h4 className="text-lg font-bold text-white leading-tight">{item.title}</h4>
-                     <p className="text-xs text-rose-300 font-medium leading-relaxed italic line-clamp-2">{item.desc}</p>
-                     <div className="pt-2 flex items-center justify-between">
-                        <span className="text-[10px] font-bold text-slate-500 uppercase">Risk Level</span>
-                        <Badge variant="outline" className="text-rose-400 border-rose-500/30 font-black">{item.risk}</Badge>
-                     </div>
-                  </Card>
-               ))}
-            </div>
+          {/* Cards */}
+          <div className="space-y-4" role="list" aria-label="Recommendations">
+            {filtered.length === 0 && (
+              <div className="text-center py-16 text-slate-500">
+                <Filter size={32} className="mx-auto mb-3 opacity-30" aria-hidden="true" />
+                <p className="text-sm font-medium">No recommendations at this difficulty level.</p>
+              </div>
+            )}
 
-            <div className="glass-panel p-8 rounded-[40px] relative overflow-hidden group">
-               <div className="absolute inset-0 bg-indigo-600/5 group-hover:bg-indigo-600/10 transition-colors" />
-               <div className="relative z-10 space-y-6">
-                  <div className="w-12 h-12 bg-indigo-600/20 rounded-2xl flex items-center justify-center text-indigo-400">
-                     <Globe size={24} />
-                  </div>
-                  <h4 className="text-xl font-bold text-white leading-tight">Industry Benchmark</h4>
-                  <p className="text-xs text-slate-400 font-medium leading-relaxed">Your venture is performing in the top <span className="text-white">7%</span> of logistics startups in Germany. The engine recommends a Seed round valuation push.</p>
-                  <Button variant="outline" className="w-full text-xs font-bold py-5 h-10 italic">Analyze Benchmarks</Button>
-               </div>
+            {filtered.map((rec, i) => (
+              <motion.div
+                key={rec.id}
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.07 }}
+                role="listitem"
+              >
+                <RecommendationCard
+                  rec={rec}
+                  isSaved={saved.has(rec.id)}
+                  onToggleSave={() => toggleSave(rec.id)}
+                />
+              </motion.div>
+            ))}
+          </div>
+        </div>
+
+        {/* Right — sidebar */}
+        <div className="lg:col-span-4 space-y-6">
+          {/* Pipeline progress */}
+          <Card className="bg-indigo-600/5 border-white/5">
+            <CardHeader>
+              <CardDescription>Implementation Pipeline</CardDescription>
+              <CardTitle className="text-2xl">{implementedPct}%</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Progress
+                value={implementedPct}
+                label={`Implementation pipeline: ${implementedPct}%`}
+                className="h-2.5"
+              />
+              <p className="text-xs text-slate-500 font-medium leading-relaxed">
+                {savedCount} of {mockRecommendations.length} actions queued for review.{' '}
+                {mockRecommendations.length - savedCount > 0
+                  ? `${mockRecommendations.length - savedCount} still pending.`
+                  : 'All actions reviewed!'}
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* Category breakdown */}
+          <div className="p-4 rounded-[32px] border border-white/5 bg-white/[0.01]">
+            <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-5 px-2">
+              Category Breakdown
+            </h4>
+            <div className="space-y-3">
+              {Object.entries(
+                mockRecommendations.reduce<Record<string, number>>((acc, r) => {
+                  acc[r.category] = (acc[r.category] ?? 0) + 1;
+                  return acc;
+                }, {})
+              ).map(([category, count]) => (
+                <div
+                  key={category}
+                  className="flex items-center justify-between px-3 py-2 rounded-2xl bg-white/5 border border-white/5"
+                >
+                  <span className="text-xs font-bold text-slate-300 capitalize">{category}</span>
+                  <Badge variant="secondary" className="text-[10px]">
+                    {count}
+                  </Badge>
+                </div>
+              ))}
             </div>
-         </div>
+          </div>
+
+          {/* CTA */}
+          <Card className="bg-gradient-to-br from-indigo-600/20 to-purple-600/10 border-indigo-500/20">
+            <CardContent className="pt-4 space-y-4">
+              <h4 className="font-bold text-white text-lg">
+                Need a custom playbook?
+              </h4>
+              <p className="text-sm text-slate-400 leading-relaxed">
+                Ask the AI Co-Pilot to generate a prioritized 90-day action plan tailored to your
+                current phase.
+              </p>
+              <Button className="w-full gap-2">
+                Open AI Assistant
+                <ArrowUpRight size={16} aria-hidden="true" />
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
+  );
+}
+
+// ─── Sub-components ────────────────────────────────────────────────────────────
+
+function StatCard({
+  icon,
+  label,
+  value,
+  sub,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: number | string;
+  sub: string;
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+    >
+      <Card className="h-full">
+        <CardContent className="pt-4">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="p-2.5 rounded-xl bg-white/5 border border-white/5">{icon}</div>
+            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{label}</p>
+          </div>
+          <p className="text-3xl font-black tracking-tight text-white">{value}</p>
+          <p className="text-xs text-slate-500 font-medium mt-1">{sub}</p>
+        </CardContent>
+      </Card>
+    </motion.div>
+  );
+}
+
+function RecommendationCard({
+  rec,
+  isSaved,
+  onToggleSave,
+}: {
+  rec: Recommendation;
+  isSaved: boolean;
+  onToggleSave: () => void;
+}) {
+  return (
+    <Card
+      className={cn(
+        'transition-all duration-300 p-0 overflow-hidden group',
+        isSaved ? 'border-indigo-500/40 bg-indigo-600/5' : 'hover:border-white/20'
+      )}
+    >
+      <div className="p-6 space-y-4">
+        <div className="flex items-start justify-between gap-4">
+          <div className="space-y-2 min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge variant={DIFFICULTY_BADGE_VARIANT[rec.difficulty]}>
+                {rec.difficulty}
+              </Badge>
+              <Badge variant="outline" className="text-[9px]">
+                {rec.category}
+              </Badge>
+            </div>
+            <h3 className="font-bold text-lg text-white leading-tight">{rec.title}</h3>
+          </div>
+
+          <button
+            type="button"
+            onClick={onToggleSave}
+            aria-label={isSaved ? `Remove "${rec.title}" from review queue` : `Add "${rec.title}" to review queue`}
+            aria-pressed={isSaved}
+            className={cn(
+              'shrink-0 p-2.5 rounded-xl border transition-all',
+              isSaved
+                ? 'bg-indigo-600 border-indigo-500 text-white shadow-lg shadow-indigo-500/20'
+                : 'border-white/10 text-slate-500 hover:border-indigo-500/50 hover:text-indigo-400'
+            )}
+          >
+            <Zap size={16} aria-hidden="true" />
+          </button>
+        </div>
+
+        <p className="text-sm text-slate-400 leading-relaxed">{rec.description}</p>
+
+        <div className="flex items-center gap-3 pt-2 border-t border-white/5">
+          <div className="flex-1">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">
+              Expected Impact
+            </p>
+            <p className="text-xs font-bold text-emerald-400 italic">{rec.impact}</p>
+          </div>
+          <button
+            type="button"
+            aria-label={`View full details for ${rec.title}`}
+            className="p-2 rounded-lg bg-white/5 text-slate-500 hover:text-white hover:bg-white/10 transition-colors"
+          >
+            <ChevronRight size={16} aria-hidden="true" />
+          </button>
+        </div>
+      </div>
+    </Card>
   );
 }
