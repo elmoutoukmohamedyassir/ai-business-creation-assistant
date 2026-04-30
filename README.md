@@ -55,3 +55,73 @@ User → FastAPI → Finance Chat Agent
 ---
 
 ## 🗂️ Project Structure
+
+backend/
+├── app/
+│ ├── agents/
+│ │ ├── finance_agent.py
+│ │ ├── finance_chat_agent.py
+│ │ └── finance_guard.py
+│ │
+│ ├── tools/
+│ │ ├── saas_calculator.py
+│ │ └── scenario_analysis.py
+│ │
+│ ├── rag/
+│ │ ├── ingest.py
+│ │ ├── retriever.py
+│ │ └── vector_store/
+│ │
+│ ├── llm/
+│ │ └── ollama_client.py
+│ │
+│ └── main.py
+│
+├── documents/
+│ └── *.pdf
+│
+└── README.md
+
+
+---
+
+1. Create virtual environment :
+python -m venv venv
+venv\Scripts\activate
+
+---
+
+3. Install dependencies : 
+pip install fastapi uvicorn requests pydantic
+pip install chromadb sentence-transformers pypdf
+
+---
+
+🤖 Setup Ollama (Local LLM)
+
+Download Ollama:
+
+👉 https://ollama.com
+
+Then run:
+
+ollama pull qwen3:1.7b
+ollama run qwen3:1.7b
+
+---
+
+📚 RAG Setup (PDF ingestion)
+
+Put your PDFs in : backend/documents/
+
+Then run : python app/rag/ingest.py
+
+---
+
+
+🚀 Run the backend 
+uvicorn app.main:app --reload
+
+Open:
+
+http://127.0.0.1:8000/docs
